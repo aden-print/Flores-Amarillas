@@ -36,9 +36,9 @@
     z-index: 9999;
     opacity: 1;
     transition: opacity 1s ease-out;
-    padding: 20px; /* Añade un poco de espacio para evitar que el texto toque los bordes */
+    padding: 20px;
     box-sizing: border-box;
-    text-align: center; /* Centra el texto en caso de que ocupe varias líneas */
+    text-align: center;
   }
 
   .splash-screen.hidden {
@@ -51,7 +51,6 @@
     font-size: 3em;
     margin-bottom: 30px;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-    /* Ajuste para móviles */
     font-size: clamp(1.5em, 5vw, 3em);
   }
 
@@ -72,7 +71,7 @@
   .start-button:hover {
     background: linear-gradient(45deg, #FFD700, #FFEB3B);
     transform: scale(1.1);
-    box-shadow: 0 12px 20px rgba(0,0,0,0.3);
+    box-shadow: 12px 20px rgba(0,0,0,0.3);
     animation-play-state: paused;
   }
 
@@ -107,7 +106,7 @@
     background:white;
     transition: transform 0.1s ease;
   }
-  
+   
   #clearBtn {
     background: #FFC107;
     color: #BF6F00;
@@ -215,7 +214,7 @@
     right: 10px;
     box-shadow: inset 0 -4px 8px rgba(0, 0, 0, 0.05);
   }
-  
+   
   @keyframes moveCloud {
     0% { transform: translateX(-100vw); }
     100% { transform: translateX(200vw); }
@@ -229,7 +228,7 @@
     pointer-events:auto;
     user-select:none;
     filter: drop-shadow(0 6px 8px rgba(0,0,0,0.12));
-    z-index: 20; 
+    z-index: 20;  
   }
 
   .petal{
@@ -301,7 +300,7 @@
     50% { transform: scale(1.02); }
     100% { transform: scale(1); }
   }
-  
+   
   @keyframes dance {
     0% { transform: rotate(0deg); }
     25% { transform: rotate(5deg) translateY(-2px); }
@@ -310,7 +309,7 @@
     100% { transform: rotate(0deg); }
   }
 
-  .flower.sway { 
+  .flower.sway {
     animation-name: sway, pulse, dance;
     animation-duration: 4s, 3s, 5s;
     animation-timing-function: ease-in-out, ease, cubic-bezier(0.68, -0.55, 0.27, 1.55);
@@ -335,7 +334,7 @@
 </style>
 </head>
 <body>
-  
+   
   <div class="splash-screen" id="splashScreen">
     <h1>¡He creado este jardín de flores amarillas para ti!</h1>
     <button class="start-button" id="startButton">Ir a verlo</button>
@@ -357,7 +356,7 @@
     </div>
     <div class="sun"></div>
   </div>
-  
+   
   <audio id="backgroundMusic" src="musiquita.mp3" loop></audio>
 
 <script>
@@ -367,6 +366,13 @@
   const splashScreen = document.getElementById('splashScreen');
   const startButton = document.getElementById('startButton');
 
+  // Ajuste para controlar el espacio de las flores
+  let flowerInterval;
+  const areaThreshold = 2; // Aumentado al 15%
+  
+  // Array para llevar un registro de las flores y sus tamaños
+  const flowers = [];
+
   function initializeGarden() {
     splashScreen.classList.add('hidden');
     backgroundMusic.play().catch(e => console.log('Error al reproducir la música:', e));
@@ -374,7 +380,9 @@
     for (let i = 0; i < 50; i++) {
       createCloud();
     }
-    setInterval(createRandomFlower, 200);
+    
+    // Inicia la generación de flores
+    flowerInterval = setInterval(createRandomFlower, 200);
   }
 
   startButton.addEventListener('click', initializeGarden);
@@ -398,11 +406,12 @@
 
   function createFlower(x, y, size = 1, sway = true) {
     const f = document.createElement('div');
-    f.className = 'flower size-' + (size === 0 ? 0 : (size === 1 ? 1 : 2));
+    const sizeClass = 'size-' + (size === 0 ? 0 : (size === 1 ? 1 : 2));
+    f.className = 'flower ' + sizeClass;
     if (sway) f.classList.add('sway');
     f.style.left = (x - (size === 0 ? 30 : size === 1 ? 45 : 60)) + 'px';
     f.style.top = (y - (size === 0 ? 30 : size === 1 ? 45 : 60)) + 'px';
-    f.tabIndex = 0; 
+    f.tabIndex = 0;
 
     for (let i = 0; i < 6; i++){
       const p = document.createElement('div');
@@ -431,6 +440,10 @@
       ev.stopPropagation();
       if (ev.altKey) {
         f.remove();
+        const index = flowers.indexOf(f);
+        if (index > -1) {
+          flowers.splice(index, 1);
+        }
       } else {
         f.animate([{ transform: f.style.transform + ' scale(1)' }, { transform: f.style.transform + ' scale(1.06)' }, { transform: f.style.transform + ' scale(1)' }], { duration: 260 });
       }
@@ -439,27 +452,58 @@
     garden.appendChild(f);
     return f;
   }
+  
+  function getFlowerArea() {
+      let totalArea = 0;
+      flowers.forEach(f => {
+          const size = f.getBoundingClientRect();
+          totalArea += size.width * size.height;
+      });
+      return totalArea;
+  }
+  
+  function getScreenArea() {
+      return garden.clientWidth * garden.clientHeight;
+  }
 
   garden.addEventListener('click', (e) => {
     const rect = garden.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     const size = Math.random() < 0.35 ? 0 : Math.random() < 0.6 ? 1 : 2;
-    createFlower(x, y, size, true);
+    const newFlower = createFlower(x, y, size, true);
+    flowers.push(newFlower);
   });
 
   function createRandomFlower() {
-      const rect = garden.getBoundingClientRect();
-      const x = Math.random() * rect.width;
-      const y = rect.height * 0.25 + Math.random() * rect.height * 0.6;
-      const size = Math.random() < 0.2 ? 0 : Math.random() < 0.6 ? 1 : 2;
-      const f = createFlower(x, y, size, Math.random() < 0.9);
-      f.style.opacity = 0;
-      f.animate([{ opacity: 0, transform: f.style.transform + ' translateY(10px)' }, { opacity: 1, transform: f.style.transform + ' translateY(0)' }], { duration: 600 + Math.random() * 800, delay: 0 });
-      f.style.opacity = 1;
+    // Calcula el porcentaje de la pantalla ocupado por las flores
+    const occupiedArea = getFlowerArea();
+    const screenArea = getScreenArea();
+    const occupiedPercentage = occupiedArea / screenArea;
+    
+    if (occupiedPercentage >= areaThreshold) {
+      clearInterval(flowerInterval);
+      return;
+    }
+    
+    const rect = garden.getBoundingClientRect();
+    const x = Math.random() * rect.width;
+    const y = rect.height * 0.25 + Math.random() * rect.height * 0.6;
+    const size = Math.random() < 0.2 ? 0 : Math.random() < 0.6 ? 1 : 2;
+    const f = createFlower(x, y, size, Math.random() < 0.9);
+    
+    flowers.push(f);
+    
+    f.style.opacity = 0;
+    f.animate([{ opacity: 0, transform: f.style.transform + ' translateY(10px)' }, { opacity: 1, transform: f.style.transform + ' translateY(0)' }], { duration: 600 + Math.random() * 800, delay: 0 });
+    f.style.opacity = 1;
   }
 
   clearBtn.addEventListener('click', () => {
+    clearInterval(flowerInterval);
+    flowers.length = 0; // Limpia el array de flores
+    flowerInterval = setInterval(createRandomFlower, 200);
+    
     garden.innerHTML = `<div class="rainbow">
       <div class="rainbow-arc violet"></div>
       <div class="rainbow-arc indigo"></div>
