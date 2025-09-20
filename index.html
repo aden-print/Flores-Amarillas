@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Flores amarillas — HTML/CSS/JS</title>
+<style>
+  :root{
+    --petal: #FFD54A;
+    --petal-dark: #FFC107;
+    --center: #FFB300;
+    --stem: #4CAF50;
+    --leaf: #388E3C;
+  }
+
+  html,body{
+    height:100%;
+    margin:0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background: linear-gradient(#BDE7FF, #E8F5E9);
+    overflow:hidden;
+  }
+
+  /* Estilos para la pantalla de bienvenida */
+  .splash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(#BDE7FF, #E8F5E9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 9999;
+    opacity: 1;
+    transition: opacity 1s ease-out;
+    padding: 20px; /* Añade un poco de espacio para evitar que el texto toque los bordes */
+    box-sizing: border-box;
+    text-align: center; /* Centra el texto en caso de que ocupe varias líneas */
+  }
+
+  .splash-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .splash-screen h1 {
+    color: #333;
+    font-size: 3em;
+    margin-bottom: 30px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    /* Ajuste para móviles */
+    font-size: clamp(1.5em, 5vw, 3em);
+  }
+
+  .start-button {
+    padding: 18px 40px;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(45deg, #FFC107, #FFD700);
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+    animation: bounce 2s infinite;
+  }
+
+  .start-button:hover {
+    background: linear-gradient(45deg, #FFD700, #FFEB3B);
+    transform: scale(1.1);
+    box-shadow: 0 12px 20px rgba(0,0,0,0.3);
+    animation-play-state: paused;
+  }
+
+  .start-button:active {
+    transform: scale(0.95);
+    box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+  }
+
+  @keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-15px); }
+    60% { transform: translateY(-7px); }
+  }
+
+
+  .toolbar{
+    position:fixed;
+    left:12px;
+    top:12px;
+    z-index:1000;
+    background:rgba(255,255,255,0.85);
+    padding:8px 12px;
+    border-radius:10px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.12);
+  }
+  .toolbar button{
+    margin-right:8px;
+    padding:6px 10px;
+    border-radius:8px;
+    border:1px solid rgba(0,0,0,0.06);
+    cursor:pointer;
+    background:white;
+    transition: transform 0.1s ease;
+  }
+  
+  #clearBtn {
+    background: #FFC107;
+    color: #BF6F00;
+    border: 1px solid #FFB300;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  #clearBtn:hover {
+    background: #FFD54A;
+    transform: scale(1.05);
+  }
+  #clearBtn:active {
+    transform: scale(0.95);
+  }
+
+  .garden{
+    position:relative;
+    width:100%;
+    height:100%;
+    z-index: 1;
+    background: linear-gradient(#C9F0FF, #E0F7FA);
+  }
+
+  .rainbow {
+    position: absolute;
+    top: -10%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 250vw;
+    height: 125vw;
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    opacity: 0.8;
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  .rainbow-arc {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    opacity: 0.4;
+    bottom: 0;
+  }
+
+  .rainbow-arc.violet { background-color: #BDE7FF; }
+  .rainbow-arc.indigo { background-color: #BDE7FF; }
+  .rainbow-arc.blue { background-color: #0000FF; }
+  .rainbow-arc.green { background-color: #00FF00; }
+  .rainbow-arc.yellow { background-color: #FFFF00; }
+  .rainbow-arc.orange { background-color: #FF7F00; }
+  .rainbow-arc.red { background-color: #FF0000; }
+
+  .rainbow-arc.red { width: 100%; height: 100%; }
+  .rainbow-arc.orange { width: 98%; height: 98%; left: 1%; bottom: -1%; }
+  .rainbow-arc.yellow { width: 96%; height: 96%; left: 2%; bottom: -2%; }
+  .rainbow-arc.green { width: 94%; height: 94%; left: 3%; bottom: -3%; }
+  .rainbow-arc.blue { width: 92%; height: 92%; left: 4%; bottom: -4%; }
+  .rainbow-arc.indigo { width: 90%; height: 90%; left: 5%; bottom: -5%; }
+  .rainbow-arc.violet { width: 88%; height: 88%; left: 6%; bottom: -6%; }
+
+  .sun {
+    position: absolute;
+    top: 5%;
+    right: 5%;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: radial-gradient(circle at center, #FFEB3B, #FFD700);
+    box-shadow: 0 0 40px 10px #FFD700;
+    z-index: 5;
+  }
+
+  .cloud {
+    position: absolute;
+    width: 150px;
+    height: 50px;
+    background: white;
+    border-radius: 50px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    animation: moveCloud 30s linear infinite;
+    z-index: 10;
+  }
+
+  .cloud::before,
+  .cloud::after {
+    content: "";
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+  }
+
+  .cloud::before {
+    width: 80px;
+    height: 80px;
+    top: -40px;
+    left: 20px;
+    box-shadow: inset 0 -4px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .cloud::after {
+    width: 100px;
+    height: 100px;
+    top: -50px;
+    right: 10px;
+    box-shadow: inset 0 -4px 8px rgba(0, 0, 0, 0.05);
+  }
+  
+  @keyframes moveCloud {
+    0% { transform: translateX(-100vw); }
+    100% { transform: translateX(200vw); }
+  }
+
+  .flower{
+    position:absolute;
+    width:120px;
+    height:120px;
+    transform-origin: 50% 80%;
+    pointer-events:auto;
+    user-select:none;
+    filter: drop-shadow(0 6px 8px rgba(0,0,0,0.12));
+    z-index: 20; 
+  }
+
+  .petal{
+    position:absolute;
+    left:50%;
+    top:50%;
+    width:56px;
+    height:56px;
+    margin-left:-28px;
+    margin-top:-28px;
+    border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;
+    background: radial-gradient(circle at 35% 30%, var(--petal-dark) 10%, var(--petal) 60%);
+    transform-origin: 50% 120%;
+    transition: transform .25s ease;
+  }
+  .petal:nth-child(1){ transform: rotate(0deg) translateY(-40px) rotate(0deg); }
+  .petal:nth-child(2){ transform: rotate(60deg) translateY(-40px) rotate(-60deg); }
+  .petal:nth-child(3){ transform: rotate(120deg) translateY(-40px) rotate(-120deg); }
+  .petal:nth-child(4){ transform: rotate(180deg) translateY(-40px) rotate(-180deg); }
+  .petal:nth-child(5){ transform: rotate(240deg) translateY(-40px) rotate(-240deg); }
+  .petal:nth-child(6){ transform: rotate(300deg) translateY(-40px) rotate(-300deg); }
+
+  .center{
+    position:absolute;
+    left:50%;
+    top:50%;
+    width:46px;
+    height:46px;
+    margin-left:-23px;
+    margin-top:-23px;
+    border-radius:50%;
+    background: radial-gradient(circle at 30% 30%, #FFD54A 0%, var(--center) 40%, #BF6F00 100%);
+    box-shadow: inset 0 -6px 12px rgba(0,0,0,0.08);
+    z-index:2;
+  }
+
+  .stem{
+    position:absolute;
+    left:50%;
+    top:100%;
+    width:8px;
+    height:160px;
+    margin-left:-4px;
+    background: linear-gradient(180deg, var(--stem), #2e7d32);
+    border-radius:4px;
+    transform-origin: top center;
+  }
+
+  .leaf{
+    position:absolute;
+    width:56px;
+    height:26px;
+    border-radius:50% 50% 50% 50% / 70% 70% 30% 30%;
+    background: linear-gradient(90deg, var(--leaf), #2e7d32);
+    box-shadow:0 3px 6px rgba(0,0,0,0.12);
+    transform-origin: left center;
+  }
+  .leaf.left{ transform: rotate(-35deg) translate(-12px, 40px); left:50%; top:46%; }
+  .leaf.right{ transform: rotate(18deg) translate(12px, 70px); left:50%; top:60%; }
+
+  @keyframes sway {
+    0%{ transform: rotate(-3deg); }
+    50%{ transform: rotate(3deg); }
+    100%{ transform: rotate(-3deg); }
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+  }
+  
+  @keyframes dance {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(5deg) translateY(-2px); }
+    50% { transform: rotate(-5deg) translateY(2px); }
+    75% { transform: rotate(5deg) translateY(-2px); }
+    100% { transform: rotate(0deg); }
+  }
+
+  .flower.sway { 
+    animation-name: sway, pulse, dance;
+    animation-duration: 4s, 3s, 5s;
+    animation-timing-function: ease-in-out, ease, cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    animation-iteration-count: infinite, infinite, infinite;
+  }
+
+  .flower:hover .petal{ transform: scale(1.06) translateY(-42px); }
+  .flower:active{ transform: scale(0.96); }
+
+  .size-0{ width:60px; height:60px; }
+  .size-0 .petal{ width:28px; height:28px; margin-left:-14px; margin-top:-14px; }
+  .size-0 .center{ width:24px; height:24px; margin-left:-12px; margin-top:-12px; }
+  .size-0 .stem{ height:80px; width:5px; margin-left:-2.5px; }
+
+  .size-1{ width:90px; height:90px; }
+  .size-1 .petal{ width:42px; height:42px; margin-left:-21px; margin-top:-21px; }
+  .size-1 .center{ width:36px; height:36px; margin-left:-18px; margin-top:-18px; }
+  .size-1 .stem{ height:120px; width:6px; margin-left:-3px; }
+
+  .flower:focus{ outline:3px dashed rgba(255,193,7,0.25); outline-offset:6px; }
+
+</style>
+</head>
+<body>
+  
+  <div class="splash-screen" id="splashScreen">
+    <h1>¡He creado este jardín de flores amarillas para ti!</h1>
+    <button class="start-button" id="startButton">Ir a verlo</button>
+  </div>
+
+  <div class="toolbar">
+    <button id="clearBtn">Limpiar</button>
+  </div>
+
+  <div class="garden" id="garden" tabindex="0">
+    <div class="rainbow">
+      <div class="rainbow-arc red"></div>
+      <div class="rainbow-arc orange"></div>
+      <div class="rainbow-arc yellow"></div>
+      <div class="rainbow-arc green"></div>
+      <div class="rainbow-arc blue"></div>
+      <div class="rainbow-arc indigo"></div>
+      <div class="rainbow-arc violet"></div>
+    </div>
+    <div class="sun"></div>
+  </div>
+  
+  <audio id="backgroundMusic" src="musiquita.mp3" loop></audio>
+
+<script>
+  const garden = document.getElementById('garden');
+  const clearBtn = document.getElementById('clearBtn');
+  const backgroundMusic = document.getElementById('backgroundMusic');
+  const splashScreen = document.getElementById('splashScreen');
+  const startButton = document.getElementById('startButton');
+
+  function initializeGarden() {
+    splashScreen.classList.add('hidden');
+    backgroundMusic.play().catch(e => console.log('Error al reproducir la música:', e));
+
+    for (let i = 0; i < 50; i++) {
+      createCloud();
+    }
+    setInterval(createRandomFlower, 200);
+  }
+
+  startButton.addEventListener('click', initializeGarden);
+
+
+  function createCloud() {
+    const cloud = document.createElement('div');
+    cloud.className = 'cloud';
+    const yPos = Math.random() * (garden.clientHeight * 0.4);
+    cloud.style.top = yPos + 'px';
+    const startX = -Math.random() * (garden.clientWidth * 0.5) - 150;
+    cloud.style.left = startX + 'px';
+    const duration = 25 + Math.random() * 20;
+    cloud.style.animationDuration = duration + 's';
+    garden.appendChild(cloud);
+
+    cloud.addEventListener('animationend', () => {
+        cloud.remove();
+    });
+  }
+
+  function createFlower(x, y, size = 1, sway = true) {
+    const f = document.createElement('div');
+    f.className = 'flower size-' + (size === 0 ? 0 : (size === 1 ? 1 : 2));
+    if (sway) f.classList.add('sway');
+    f.style.left = (x - (size === 0 ? 30 : size === 1 ? 45 : 60)) + 'px';
+    f.style.top = (y - (size === 0 ? 30 : size === 1 ? 45 : 60)) + 'px';
+    f.tabIndex = 0; 
+
+    for (let i = 0; i < 6; i++){
+      const p = document.createElement('div');
+      p.className = 'petal';
+      f.appendChild(p);
+    }
+    const c = document.createElement('div');
+    c.className = 'center';
+    f.appendChild(c);
+
+    const s = document.createElement('div');
+    s.className = 'stem';
+    f.appendChild(s);
+
+    const l1 = document.createElement('div');
+    l1.className = 'leaf left';
+    f.appendChild(l1);
+    const l2 = document.createElement('div');
+    l2.className = 'leaf right';
+    f.appendChild(l2);
+
+    const rot = (Math.random() * 20 - 10).toFixed(2);
+    f.style.transform = `rotate(${rot}deg)`;
+
+    f.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      if (ev.altKey) {
+        f.remove();
+      } else {
+        f.animate([{ transform: f.style.transform + ' scale(1)' }, { transform: f.style.transform + ' scale(1.06)' }, { transform: f.style.transform + ' scale(1)' }], { duration: 260 });
+      }
+    });
+
+    garden.appendChild(f);
+    return f;
+  }
+
+  garden.addEventListener('click', (e) => {
+    const rect = garden.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const size = Math.random() < 0.35 ? 0 : Math.random() < 0.6 ? 1 : 2;
+    createFlower(x, y, size, true);
+  });
+
+  function createRandomFlower() {
+      const rect = garden.getBoundingClientRect();
+      const x = Math.random() * rect.width;
+      const y = rect.height * 0.25 + Math.random() * rect.height * 0.6;
+      const size = Math.random() < 0.2 ? 0 : Math.random() < 0.6 ? 1 : 2;
+      const f = createFlower(x, y, size, Math.random() < 0.9);
+      f.style.opacity = 0;
+      f.animate([{ opacity: 0, transform: f.style.transform + ' translateY(10px)' }, { opacity: 1, transform: f.style.transform + ' translateY(0)' }], { duration: 600 + Math.random() * 800, delay: 0 });
+      f.style.opacity = 1;
+  }
+
+  clearBtn.addEventListener('click', () => {
+    garden.innerHTML = `<div class="rainbow">
+      <div class="rainbow-arc violet"></div>
+      <div class="rainbow-arc indigo"></div>
+      <div class="rainbow-arc blue"></div>
+      <div class="rainbow-arc green"></div>
+      <div class="rainbow-arc yellow"></div>
+      <div class="rainbow-arc orange"></div>
+      <div class="rainbow-arc red"></div>
+    </div>
+    <div class="sun"></div>`;
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'c' || e.key === 'C') clearBtn.click();
+  });
+</script>
+</body>
+</html>
